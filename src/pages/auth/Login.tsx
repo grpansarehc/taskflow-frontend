@@ -1,12 +1,15 @@
 import { useState } from 'react';
-import { Eye, EyeOff, LogIn, Mail } from 'lucide-react';
+import { Eye, EyeOff, Mail, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import ForgotPasswordModal from '../../components/auth/ForgotPasswordModal';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [rememberMe, setRememberMe] = useState(false);
+  const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -15,38 +18,96 @@ export default function Login() {
     // Simulate API call
     setTimeout(() => {
       setIsLoading(false);
-      console.log('Login:', { email, password });
+      console.log('Login:', { email, password, rememberMe });
     }, 1500);
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-8">
-      <div className="w-full max-w-md animate-fade-in">
-        <div className="bg-slate-900/80 backdrop-blur-xl border border-white/10 rounded-3xl p-10 shadow-2xl">
-          <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-white/20 to-transparent"></div>
-          
-          <div className="text-center mb-10">
-            <div className="w-14 h-14 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-2xl inline-flex items-center justify-center mb-5">
-              <LogIn size={28} className="text-white" />
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 to-blue-50 flex">
+      {/* Left Side - Branding */}
+      <div className="hidden lg:flex lg:w-1/2 bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 p-12 flex-col justify-between relative overflow-hidden">
+        {/* Background Pattern */}
+        <div className="absolute inset-0 opacity-10">
+          <div className="absolute top-0 left-0 w-96 h-96 bg-white rounded-full blur-3xl"></div>
+          <div className="absolute bottom-0 right-0 w-96 h-96 bg-white rounded-full blur-3xl"></div>
+        </div>
+
+        <div className="relative z-10">
+          {/* Logo */}
+          <div className="flex items-center gap-3 mb-16">
+            <div className="w-10 h-10 bg-white rounded-lg flex items-center justify-center">
+              <div className="w-6 h-6 bg-gradient-to-br from-blue-600 to-purple-600 rounded"></div>
             </div>
-            <h1 className="text-3xl font-semibold mb-2 bg-gradient-to-br from-white to-gray-400 bg-clip-text text-transparent">
-              Welcome Back
-            </h1>
-            <p className="text-white/50 text-[15px]">Sign in to your account</p>
+            <span className="text-2xl font-bold text-white">TaskFlow</span>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-6">
+          {/* Hero Content */}
+          <div className="max-w-md">
+            <h1 className="text-4xl font-bold text-white mb-6 leading-tight">
+              Manage Your Projects with Ease
+            </h1>
+            <p className="text-blue-100 text-lg mb-8">
+              Streamline your workflow, collaborate with your team, and deliver projects on time.
+            </p>
+
+            {/* Features */}
+            <div className="space-y-4">
+              {[
+                'Track tasks and sprints efficiently',
+                'Real-time collaboration with team',
+                'Customizable workflows and boards',
+                'Advanced reporting and analytics',
+              ].map((feature, index) => (
+                <div key={index} className="flex items-center gap-3 text-white">
+                  <CheckCircle2 className="w-5 h-5 text-blue-200" />
+                  <span className="text-blue-50">{feature}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div className="relative z-10 text-blue-100 text-sm">
+          © 2026 TaskFlow. All rights reserved.
+        </div>
+      </div>
+
+      {/* Right Side - Login Form */}
+      <div className="flex-1 flex items-center justify-center p-8">
+        <div className="w-full max-w-md">
+          {/* Mobile Logo */}
+          <div className="lg:hidden flex items-center gap-3 mb-8">
+            <div className="w-10 h-10 bg-gradient-to-br from-blue-600 to-purple-600 rounded-lg flex items-center justify-center">
+              <div className="w-6 h-6 bg-white rounded"></div>
+            </div>
+            <span className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+              TaskFlow
+            </span>
+          </div>
+
+          {/* Header */}
+          <div className="mb-8">
+            <h2 className="text-3xl font-bold text-gray-900 mb-2">Welcome back</h2>
+            <p className="text-gray-600">Sign in to continue to your workspace</p>
+          </div>
+
+          {/* Form */}
+          <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email */}
             <div>
-              <label className="block text-sm font-medium text-white/80 mb-2">Email</label>
+              <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
+                Email address
+              </label>
               <div className="relative">
-                <Mail size={18} className="absolute left-4 top-1/2 -translate-y-1/2 text-white/30" />
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
+                  id="email"
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Enter your email"
-                  className="w-full py-3.5 px-12 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 transition-all outline-none focus:bg-white/8 focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10"
+                  placeholder="you@example.com"
+                  className="w-full pl-11 pr-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none text-gray-900 placeholder:text-gray-400"
                   required
                 />
               </div>
@@ -54,60 +115,112 @@ export default function Login() {
 
             {/* Password */}
             <div>
-              <label className="block text-sm font-medium text-white/80 mb-2">Password</label>
+              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-2">
+                Password
+              </label>
               <div className="relative">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                 <input
+                  id="password"
                   type={showPassword ? 'text' : 'password'}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="Enter your password"
-                  className="w-full py-3.5 px-4 pr-12 bg-white/5 border border-white/10 rounded-xl text-white placeholder:text-white/30 transition-all outline-none focus:bg-white/8 focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10"
+                  className="w-full pl-11 pr-12 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none text-gray-900 placeholder:text-gray-400"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 text-white/40 hover:text-white/70 transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
                 >
-                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                 </button>
               </div>
             </div>
 
-            <div className="flex items-center justify-between text-sm">
-              <label className="flex items-center gap-2 text-white/60 cursor-pointer">
-                <input type="checkbox" className="rounded border-white/20 bg-white/5" />
-                Remember me
+            {/* Remember Me & Forgot Password */}
+            <div className="flex items-center justify-between">
+              <label className="flex items-center gap-2 cursor-pointer group">
+                <input
+                  type="checkbox"
+                  checked={rememberMe}
+                  onChange={(e) => setRememberMe(e.target.checked)}
+                  className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-2 focus:ring-blue-500 cursor-pointer"
+                />
+                <span className="text-sm text-gray-700 group-hover:text-gray-900">Remember me</span>
               </label>
-              <Link to="/change-password" className="text-indigo-400 hover:text-indigo-300 transition-colors">
+              <button
+                type="button"
+                onClick={() => setShowForgotPasswordModal(true)}
+                className="text-sm font-medium text-blue-600 hover:text-blue-700 transition-colors"
+              >
                 Forgot password?
-              </Link>
+              </button>
             </div>
 
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={isLoading}
-              className="w-full py-4 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl text-white font-semibold transition-all hover:translate-y-[-2px] hover:shadow-[0_12px_24px_rgba(99,102,241,0.4)] disabled:opacity-60 disabled:cursor-not-allowed"
+              className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white font-semibold py-3 px-6 rounded-lg shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none flex items-center justify-center gap-2"
             >
               {isLoading ? (
-                <span className="flex items-center justify-center gap-2">
-                  <span className="inline-block w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
+                <>
+                  <span className="inline-block w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></span>
                   Signing in...
-                </span>
+                </>
               ) : (
-                'Sign In'
+                <>
+                  Sign in
+                  <ArrowRight className="w-5 h-5" />
+                </>
               )}
             </button>
           </form>
 
-          <div className="mt-8 text-center text-sm text-white/60">
-            Don't have an account?{' '}
-            <Link to="/register" className="text-indigo-400 hover:text-indigo-300 font-medium transition-colors">
-              Sign up
+          {/* Divider */}
+          <div className="relative my-8">
+            <div className="absolute inset-0 flex items-center">
+              <div className="w-full border-t border-gray-300"></div>
+            </div>
+            <div className="relative flex justify-center text-sm">
+              <span className="px-4 bg-gradient-to-br from-slate-50 to-blue-50 text-gray-500">
+                New to TaskFlow?
+              </span>
+            </div>
+          </div>
+
+          {/* Sign Up Link */}
+          <div className="text-center">
+            <Link
+              to="/register"
+              className="inline-flex items-center gap-2 text-blue-600 hover:text-blue-700 font-medium transition-colors"
+            >
+              Create an account
+              <ArrowRight className="w-4 h-4" />
             </Link>
           </div>
+
+          {/* Terms */}
+          <p className="mt-8 text-center text-xs text-gray-500">
+            By signing in, you agree to our{' '}
+            <a href="#" className="text-blue-600 hover:underline">
+              Terms of Service
+            </a>{' '}
+            and{' '}
+            <a href="#" className="text-blue-600 hover:underline">
+              Privacy Policy
+            </a>
+          </p>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal
+        isOpen={showForgotPasswordModal}
+        onClose={() => setShowForgotPasswordModal(false)}
+      />
     </div>
   );
 }

@@ -52,6 +52,39 @@ class AuthService {
   }
 
   /**
+   * Request password reset link via email
+   */
+  async forgotPassword(email: string): Promise<{ message: string }> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Failed to send reset link' }));
+        throw {
+          message: errorData.message || 'Failed to send reset link',
+          status: response.status,
+        } as ApiError;
+      }
+
+      return await response.json();
+    } catch (error) {
+      if ((error as ApiError).status) {
+        throw error;
+      }
+      throw {
+        message: 'Network error. Please check your connection.',
+        status: 0,
+      } as ApiError;
+    }
+  }
+
+  /**
    * Validate reset token (optional - if backend provides this endpoint)
    */
 
