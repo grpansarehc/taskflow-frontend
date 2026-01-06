@@ -7,6 +7,38 @@ interface PasswordStrength {
   color: string;
 }
 
+
+const PasswordInput: React.FC<{
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  show: boolean;
+  toggleShow: () => void;
+  placeholder: string;
+}> = ({ label, value, onChange, show, toggleShow, placeholder }) => (
+  <div className="flex flex-col gap-2">
+    <label className="text-sm font-medium text-white/80 tracking-wide">{label}</label>
+    <div className="relative flex items-center">
+      <Lock size={18} className="absolute left-4 text-white/30 pointer-events-none z-10" />
+      <input
+        type={show ? 'text' : 'password'}
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className="w-full py-3.5 px-12 bg-white/5 border border-white/10 rounded-xl text-white text-[15px] placeholder:text-white/30 transition-all duration-300 outline-none focus:bg-white/8 focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10"
+      />
+      <button
+        type="button"
+        onClick={toggleShow}
+        className="absolute right-4 text-white/40 hover:text-white/70 transition-colors p-1 flex items-center justify-center"
+        aria-label={show ? 'Hide password' : 'Show password'}
+      >
+        {show ? <EyeOff size={18} /> : <Eye size={18} />}
+      </button>
+    </div>
+  </div>
+);
+
 const ChangePassword: React.FC = () => {
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
@@ -85,37 +117,6 @@ const ChangePassword: React.FC = () => {
       setTimeout(() => setSuccess(false), 5000);
     }, 1500);
   };
-
-  const PasswordInput: React.FC<{
-    label: string;
-    value: string;
-    onChange: (value: string) => void;
-    show: boolean;
-    toggleShow: () => void;
-    placeholder: string;
-  }> = ({ label, value, onChange, show, toggleShow, placeholder }) => (
-    <div className="flex flex-col gap-2">
-      <label className="text-sm font-medium text-white/80 tracking-wide">{label}</label>
-      <div className="relative flex items-center">
-        <Lock size={18} className="absolute left-4 text-white/30 pointer-events-none z-10" />
-        <input
-          type={show ? 'text' : 'password'}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          placeholder={placeholder}
-          className="w-full py-3.5 px-12 bg-white/5 border border-white/10 rounded-xl text-white text-[15px] placeholder:text-white/30 transition-all duration-300 outline-none focus:bg-white/8 focus:border-indigo-500/50 focus:ring-4 focus:ring-indigo-500/10"
-        />
-        <button
-          type="button"
-          onClick={toggleShow}
-          className="absolute right-4 text-white/40 hover:text-white/70 transition-colors p-1 flex items-center justify-center"
-          aria-label={show ? 'Hide password' : 'Show password'}
-        >
-          {show ? <EyeOff size={18} /> : <Eye size={18} />}
-        </button>
-      </div>
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-950 via-slate-900 to-slate-950 flex items-center justify-center p-8">
