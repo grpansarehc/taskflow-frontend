@@ -54,16 +54,7 @@ class AuthService {
   /**
    * Validate reset token (optional - if backend provides this endpoint)
    */
-  async validateResetToken(token: string): Promise<boolean> {
-    try {
-      const response = await fetch(`${API_BASE_URL}/auth/validate-token?token=${token}`, {
-        method: 'GET',
-      });
-      return response.ok;
-    } catch (error) {
-      return false;
-    }
-  }
+
 
   /**
    * Change password (requires current password)

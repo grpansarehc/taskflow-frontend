@@ -51,21 +51,10 @@ export default function ResetPassword() {
     }
     
     setToken(tokenParam);
-    validateToken(tokenParam);
+  
   }, [searchParams]);
 
-  const validateToken = async (token: string) => {
-    try {
-      const isValid = await authService.validateResetToken(token);
-      setTokenValid(isValid);
-      if (!isValid) {
-        setError('This reset link is invalid or has expired');
-      }
-    } catch (error) {
-      setTokenValid(false);
-      setError('Failed to validate reset token');
-    }
-  };
+ 
 
   const passwordStrength = calculatePasswordStrength(newPassword);
 
