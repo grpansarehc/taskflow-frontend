@@ -49,7 +49,7 @@ export default function ResetPassword() {
       setTokenValid(false);
       return;
     }
-    
+    setTokenValid(true);
     setToken(tokenParam);
   
   }, [searchParams]);
