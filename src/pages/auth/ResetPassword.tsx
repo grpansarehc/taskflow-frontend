@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Lock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
+import { authService, ApiError } from '../../services/auth.service';
 
 interface PasswordStrength {
   score: number;
@@ -50,16 +51,20 @@ export default function ResetPassword() {
     }
     
     setToken(tokenParam);
-    // Simulate token validation
     validateToken(tokenParam);
   }, [searchParams]);
 
   const validateToken = async (token: string) => {
-    // Simulate API call to validate token
-    setTimeout(() => {
-      // For demo purposes, accept any token
-      setTokenValid(true);
-    }, 500);
+    try {
+      const isValid = await authService.validateResetToken(token);
+      setTokenValid(isValid);
+      if (!isValid) {
+        setError('This reset link is invalid or has expired');
+      }
+    } catch (error) {
+      setTokenValid(false);
+      setError('Failed to validate reset token');
+    }
   };
 
   const passwordStrength = calculatePasswordStrength(newPassword);
@@ -68,6 +73,11 @@ export default function ResetPassword() {
     e.preventDefault();
     setError('');
     setSuccess(false);
+
+    if (!token) {
+      setError('Invalid reset token');
+      return;
+    }
 
     if (!newPassword || !confirmPassword) {
       setError('All fields are required');
@@ -86,16 +96,25 @@ export default function ResetPassword() {
 
     setIsLoading(true);
 
-    // Simulate API call to reset password
-    setTimeout(() => {
-      setIsLoading(false);
+    try {
+      await authService.resetPassword({
+        token,
+        newPassword,
+      });
+      
       setSuccess(true);
+      setError('');
       
       // Redirect to login after 2 seconds
       setTimeout(() => {
         navigate('/login');
       }, 2000);
-    }, 1500);
+    } catch (err) {
+      const apiError = err as ApiError;
+      setError(apiError.message || 'Failed to reset password. Please try again.');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   if (tokenValid === false) {
