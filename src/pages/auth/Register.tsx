@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { Eye, EyeOff, Mail, User, Lock, ArrowRight, CheckCircle2, Briefcase, Building2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import authService from '../../services/auth.service';
+import type { ApiError } from '../../services/auth.service';
+import { useToast } from '../../components/common/ToastProvider';
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -15,20 +18,54 @@ export default function Register() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [agreeToTerms, setAgreeToTerms] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { addToast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError(null);
+
     if (!agreeToTerms) {
-      alert('Please agree to the terms and conditions');
+      setError('Please agree to the terms and conditions');
+      addToast({ type: 'error', message: 'Please agree to the terms and conditions' });
       return;
     }
+
+    if (formData.password !== formData.confirmPassword) {
+      setError('Passwords do not match');
+      addToast({ type: 'error', message: 'Passwords do not match' });
+      return;
+    }
+
+    if (formData.password.length < 8) {
+      setError('Password must be at least 8 characters long');
+      addToast({ type: 'error', message: 'Password must be at least 8 characters long' });
+      return;
+    }
+
     setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
+
+    try {
+      await authService.register({
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        department: formData.department || undefined,
+        jobRole: formData.jobRole || undefined,
+      });
+
+      addToast({ type: 'success', message: 'Account created successfully' });
+      // Redirect to home/dashboard after a short delay so the toast is visible
+      setTimeout(() => navigate('/'), 300);
+    } catch (err) {
+      const apiErr = err as ApiError;
+      const message = apiErr?.message || 'Failed to create account. Please try again.';
+      setError(message);
+      addToast({ type: 'error', message });
+    } finally {
       setIsLoading(false);
-      console.log('Register:', formData);
-    }, 1500);
+    }
   };
 
   const handleChange = (field: string, value: string) => {
@@ -106,6 +143,11 @@ export default function Register() {
           </div>
 
           {/* Form */}
+          {error && (
+            <div className="mb-4 text-sm text-red-700 bg-red-50 border border-red-100 p-3 rounded">
+              {error}
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Full Name */}
             <div>

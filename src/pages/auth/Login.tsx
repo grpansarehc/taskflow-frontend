@@ -1,6 +1,9 @@
 import { useState } from 'react';
 import { Eye, EyeOff, Mail, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
+import authService from '../../services/auth.service';
+import type { ApiError } from '../../services/auth.service';
+import { useToast } from '../../components/common/ToastProvider';
 import ForgotPasswordModal from '../../components/auth/ForgotPasswordModal';
 
 export default function Login() {
@@ -10,16 +13,28 @@ export default function Login() {
   const [isLoading, setIsLoading] = useState(false);
   const [rememberMe, setRememberMe] = useState(false);
   const [showForgotPasswordModal, setShowForgotPasswordModal] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const navigate = useNavigate();
+  const { addToast } = useToast();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
+    setError(null);
+
+    try {
+      await authService.login(email, password, rememberMe);
+      addToast({ type: 'success', message: 'Signed in successfully' });
+      // Redirect to home/dashboard after a short delay so user can see the toast
+      setTimeout(() => navigate('/'), 200);
+    } catch (err) {
+      const apiErr = err as ApiError;
+      const message = apiErr?.message || 'Failed to login. Please try again.';
+      setError(message);
+      addToast({ type: 'error', message });
+    } finally {
       setIsLoading(false);
-      console.log('Login:', { email, password, rememberMe });
-    }, 1500);
+    }
   };
 
   return (
@@ -93,6 +108,11 @@ export default function Login() {
           </div>
 
           {/* Form */}
+          {error && (
+            <div className="mb-4 text-sm text-red-700 bg-red-50 border border-red-100 p-3 rounded">
+              {error}
+            </div>
+          )}
           <form onSubmit={handleSubmit} className="space-y-5">
             {/* Email */}
             <div>

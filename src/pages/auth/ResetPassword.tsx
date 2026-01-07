@@ -1,7 +1,8 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { Eye, EyeOff, Lock, CheckCircle, XCircle, AlertCircle } from 'lucide-react';
-import { authService, ApiError } from '../../services/auth.service';
+import authService from '../../services/auth.service';
+import type { ApiError } from '../../services/auth.service';
 
 interface PasswordStrength {
   score: number;

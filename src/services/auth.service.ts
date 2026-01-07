@@ -112,40 +112,84 @@ class AuthService {
   /**
    * Login user
    */
-  async login(email: string, password: string): Promise<void> {
-    // TODO: Implement when backend endpoint is ready
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ email, password }),
-    });
+  async login(email: string, password: string, rememberMe = false): Promise<void> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/sign-in`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ email, password }),
+      });
 
-    if (!response.ok) {
-      throw new Error('Login failed');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Login failed' }));
+        throw {
+          message: errorData.message || 'Login failed',
+          status: response.status,
+        } as ApiError;
+      }
+
+      const data = await response.json();
+      // Store token in localStorage if rememberMe, otherwise sessionStorage
+      if (rememberMe) {
+        localStorage.setItem('authToken', data.token);
+      } else {
+        sessionStorage.setItem('authToken', data.token);
+      }
+    } catch (error) {
+      if ((error as ApiError).status) {
+        throw error;
+      }
+      throw {
+        message: 'Network error. Please check your connection.',
+        status: 0,
+      } as ApiError;
     }
-
-    const data = await response.json();
-    // Store token in localStorage or context
-    localStorage.setItem('authToken', data.token);
   }
 
   /**
    * Register new user
    */
-  async register(name: string, email: string, password: string): Promise<void> {
-    // TODO: Implement when backend endpoint is ready
-    const response = await fetch(`${API_BASE_URL}/auth/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({ name, email, password }),
-    });
+  async register(
+    data: { name: string; email: string; password: string; department?: string; jobRole?: string },
+    rememberMe = true
+  ): Promise<void> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/auth/signup`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(data),
+      });
 
-    if (!response.ok) {
-      throw new Error('Registration failed');
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ message: 'Registration failed' }));
+        throw {
+          message: errorData.message || 'Registration failed',
+          status: response.status,
+        } as ApiError;
+      }
+
+      const resData = await response.json();
+
+      // If backend returns a token, store it (rememberMe decides storage)
+      if (resData?.token) {
+        if (rememberMe) {
+          localStorage.setItem('authToken', resData.token);
+        } else {
+          sessionStorage.setItem('authToken', resData.token);
+        }
+      }
+    } catch (error) {
+      if ((error as ApiError).status) {
+        throw error;
+      }
+      throw {
+        message: 'Network error. Please check your connection.',
+        status: 0,
+      } as ApiError;
     }
   }
 }
