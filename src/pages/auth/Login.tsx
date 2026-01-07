@@ -25,8 +25,8 @@ export default function Login() {
     try {
       await authService.login(email, password, rememberMe);
       addToast({ type: 'success', message: 'Signed in successfully' });
-      // Redirect to home/dashboard after a short delay so user can see the toast
-      setTimeout(() => navigate('/'), 200);
+      // Redirect to dashboard after a short delay so user can see the toast
+      setTimeout(() => navigate('/dashboard'), 200);
     } catch (err) {
       const apiErr = err as ApiError;
       const message = apiErr?.message || 'Failed to login. Please try again.';

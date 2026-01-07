@@ -152,7 +152,7 @@ class AuthService {
    * Register new user
    */
   async register(
-    data: { name: string; email: string; password: string; department?: string; jobRole?: string },
+    data: { name: string; email: string; password: string; department?: string; designation?: string },
     rememberMe = true
   ): Promise<void> {
     try {

@@ -52,7 +52,7 @@ export default function Register() {
         email: formData.email,
         password: formData.password,
         department: formData.department || undefined,
-        jobRole: formData.jobRole || undefined,
+        designation: formData.jobRole || undefined,
       });
 
       addToast({ type: 'success', message: 'Account created successfully' });

@@ -1,0 +1,190 @@
+import { useState } from 'react';
+import { 
+  LayoutDashboard, 
+  FolderKanban, 
+  CheckSquare, 
+  Users, 
+  Settings, 
+  Bell,
+  Search,
+  Plus,
+  ChevronDown,
+  LogOut,
+  User,
+} from 'lucide-react';
+import DashboardHome from './DashboardHome.tsx';
+import ProjectsPage from './ProjectsPage.tsx';
+
+type MenuItem = 'dashboard' | 'projects' | 'tasks' | 'team' | 'settings';
+
+export default function Dashboard() {
+  const [activeMenu, setActiveMenu] = useState<MenuItem>('dashboard');
+  const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
+  const [showUserMenu, setShowUserMenu] = useState(false);
+
+  const menuItems = [
+    { id: 'dashboard' as MenuItem, icon: LayoutDashboard, label: 'Dashboard' },
+    { id: 'projects' as MenuItem, icon: FolderKanban, label: 'Projects' },
+    { id: 'tasks' as MenuItem, icon: CheckSquare, label: 'Tasks' },
+    { id: 'team' as MenuItem, icon: Users, label: 'Team' },
+    { id: 'settings' as MenuItem, icon: Settings, label: 'Settings' },
+  ];
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex">
+      {/* Sidebar */}
+      <aside 
+        className={`${
+          sidebarCollapsed ? 'w-20' : 'w-64'
+        } bg-white border-r border-gray-200 transition-all duration-300 flex flex-col shadow-sm`}
+      >
+        {/* Logo */}
+        <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200">
+          {!sidebarCollapsed && (
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-indigo-600 rounded-lg flex items-center justify-center">
+                <div className="w-5 h-5 bg-white rounded"></div>
+              </div>
+              <span className="text-xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+                TaskFlow
+              </span>
+            </div>
+          )}
+          <button
+            onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+            className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
+          >
+            <ChevronDown className={`w-5 h-5 text-gray-600 transition-transform ${sidebarCollapsed ? 'rotate-90' : '-rotate-90'}`} />
+          </button>
+        </div>
+
+        {/* Navigation */}
+        <nav className="flex-1 p-3 space-y-1">
+          {menuItems.map((item) => {
+            const Icon = item.icon;
+            const isActive = activeMenu === item.id;
+            
+            return (
+              <button
+                key={item.id}
+                onClick={() => setActiveMenu(item.id)}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
+                  isActive
+                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
+                    : 'text-gray-700 hover:bg-gray-100'
+                }`}
+                title={sidebarCollapsed ? item.label : ''}
+              >
+                <Icon className="w-5 h-5 flex-shrink-0" />
+                {!sidebarCollapsed && (
+                  <span className="font-medium">{item.label}</span>
+                )}
+              </button>
+            );
+          })}
+        </nav>
+
+        {/* User Profile */}
+        <div className="p-3 border-t border-gray-200">
+          <div className="relative">
+            <button
+              onClick={() => setShowUserMenu(!showUserMenu)}
+              className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 transition-colors"
+            >
+              <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
+                JD
+              </div>
+              {!sidebarCollapsed && (
+                <>
+                  <div className="flex-1 text-left">
+                    <div className="text-sm font-semibold text-gray-900">John Doe</div>
+                    <div className="text-xs text-gray-500">john@example.com</div>
+                  </div>
+                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                </>
+              )}
+            </button>
+
+            {/* User Menu Dropdown */}
+            {showUserMenu && (
+              <div className="absolute bottom-full left-0 right-0 mb-2 bg-white rounded-lg shadow-xl border border-gray-200 py-2">
+                <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                  <User className="w-4 h-4" />
+                  Profile
+                </button>
+                <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50">
+                  <Settings className="w-4 h-4" />
+                  Settings
+                </button>
+                <div className="border-t border-gray-200 my-2"></div>
+                <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                  <LogOut className="w-4 h-4" />
+                  Logout
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      </aside>
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col">
+        {/* Top Bar */}
+        <header className="h-16 bg-white border-b border-gray-200 flex items-center justify-between px-6 shadow-sm">
+          <div className="flex items-center gap-4 flex-1">
+            {/* Search */}
+            <div className="relative max-w-md w-full">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Search projects, tasks, or team members..."
+                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
+              />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            {/* Create Button */}
+            <button className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg">
+              <Plus className="w-5 h-5" />
+              <span className="font-medium">Create</span>
+            </button>
+
+            {/* Notifications */}
+            <button className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors">
+              <Bell className="w-5 h-5 text-gray-600" />
+              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+            </button>
+          </div>
+        </header>
+
+        {/* Content Area */}
+        <main className="flex-1 overflow-auto p-6">
+          {activeMenu === 'dashboard' && <DashboardHome onNavigateToProjects={() => setActiveMenu('projects')} />}
+          {activeMenu === 'projects' && <ProjectsPage />}
+          {activeMenu === 'tasks' && (
+            <div className="text-center py-20">
+              <CheckSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Tasks</h2>
+              <p className="text-gray-600">Tasks view coming soon...</p>
+            </div>
+          )}
+          {activeMenu === 'team' && (
+            <div className="text-center py-20">
+              <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Team</h2>
+              <p className="text-gray-600">Team view coming soon...</p>
+            </div>
+          )}
+          {activeMenu === 'settings' && (
+            <div className="text-center py-20">
+              <Settings className="w-16 h-16 text-gray-400 mx-auto mb-4" />
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">Settings</h2>
+              <p className="text-gray-600">Settings view coming soon...</p>
+            </div>
+          )}
+        </main>
+      </div>
+    </div>
+  );
+}

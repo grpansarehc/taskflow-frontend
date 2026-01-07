@@ -3,6 +3,7 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 import ChangePassword from './pages/auth/ChangePassword';
 import ResetPassword from './pages/auth/ResetPassword';
+import Dashboard from './pages/dashboard/Dashboard';
 import { ToastProvider } from './components/common/ToastProvider';
 
 function App() {
@@ -15,6 +16,7 @@ function App() {
           <Route path="/register" element={<Register />} />
           <Route path="/change-password" element={<ChangePassword />} />
           <Route path="/reset-password" element={<ResetPassword />} />
+          <Route path="/dashboard" element={<Dashboard />} />
         </Routes>
       </BrowserRouter>
     </ToastProvider>
