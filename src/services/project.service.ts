@@ -1,4 +1,5 @@
 import { API_CONFIG } from '../config/api.config';
+import type { ProjectRequest, ProjectResponse } from '../types/project.types';
 
 const API_BASE_URL = API_CONFIG.BASE_URL;
 
@@ -34,6 +35,68 @@ class ProjectService {
       'Authorization': token ? `Bearer ${token}` : '',
       'X-User-Id': userId || '',
     };
+  }
+
+  /**
+   * Get all projects
+   */
+  async getAllProjects(): Promise<ProjectResponse[]> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/projects`, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        throw {
+          message: 'Failed to fetch projects',
+          status: response.status,
+        } as ApiError;
+      }
+
+      return await response.json();
+    } catch (error) {
+      if ((error as ApiError).status) {
+        throw error;
+      }
+      throw {
+        message: 'Network error. Please check your connection.',
+        status: 0,
+      } as ApiError;
+    }
+  }
+
+  /**
+   * Create new project
+   */
+  async createProject(projectData: ProjectRequest): Promise<ProjectResponse> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/projects`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(projectData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response
+          .json()
+          .catch(() => ({ message: 'Failed to create project' }));
+        throw {
+          message: errorData.message || 'Failed to create project',
+          status: response.status,
+        } as ApiError;
+      }
+
+      return await response.json();
+    } catch (error) {
+      if ((error as ApiError).status) {
+        throw error;
+      }
+      throw {
+        message: 'Network error. Please check your connection.',
+        status: 0,
+      } as ApiError;
+    }
   }
 
   /**

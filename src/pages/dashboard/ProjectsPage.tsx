@@ -1,130 +1,95 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Search, Plus, Calendar, MoreVertical, X } from 'lucide-react';
-
-interface Project {
-  id: string;
-  name: string;
-  key: string;
-  progress: number;
-  teamMembers: { initials: string; color: string }[];
-  color: string;
-  icon: string;
-  description: string;
-  dueDate: string;
-}
+import { projectService } from '../../services/project.service';
+import type { ProjectResponse, CreateProjectFormData } from '../../types/project.types';
+import { useToast } from '../../components/common/ToastProvider';
 
 export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
-  const [newProject, setNewProject] = useState({
+  const [projects, setProjects] = useState<ProjectResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
+  const { addToast } = useToast();
+  
+  const [newProject, setNewProject] = useState<CreateProjectFormData>({
     name: '',
     key: '',
     description: '',
+    type: 'SOFTWARE', // Default type
   });
 
-  // Mock projects data
-  const allProjects: Project[] = [
-    {
-      id: '1',
-      name: 'Website Redesign',
-      key: 'WR',
-      progress: 65,
-      teamMembers: [
-        { initials: 'SJ', color: 'bg-blue-500' },
-        { initials: 'MC', color: 'bg-purple-500' },
-        { initials: 'EW', color: 'bg-pink-500' },
-      ],
-      color: 'bg-blue-300',
-      icon: '🌐',
-      description: 'Complete redesign of company website',
-      dueDate: 'Jan 15, 2026',
-    },
-    {
-      id: '2',
-      name: 'Mobile App Development',
-      key: 'MAD',
-      progress: 42,
-      teamMembers: [
-        { initials: 'JD', color: 'bg-green-500' },
-        { initials: 'AS', color: 'bg-orange-500' },
-        { initials: 'KL', color: 'bg-indigo-500' },
-      ],
-      color: 'bg-red-300',
-      icon: '📱',
-      description: 'iOS and Android mobile application',
-      dueDate: 'Feb 20, 2026',
-    },
-    {
-      id: '3',
-      name: 'Marketing Campaign Q3',
-      key: 'MCQ3',
-      progress: 20,
-      teamMembers: [
-        { initials: 'RT', color: 'bg-purple-500' },
-        { initials: 'MK', color: 'bg-pink-500' },
-        { initials: 'LN', color: 'bg-yellow-500' },
-      ],
-      color: 'bg-purple-300',
-      icon: '📊',
-      description: 'Q3 marketing initiatives and campaigns',
-      dueDate: 'Jan 30, 2026',
-    },
-    {
-      id: '4',
-      name: 'API Integration',
-      key: 'API',
-      progress: 80,
-      teamMembers: [
-        { initials: 'AB', color: 'bg-cyan-500' },
-        { initials: 'CD', color: 'bg-teal-500' },
-      ],
-      color: 'bg-cyan-300',
-      icon: '🔌',
-      description: 'Third-party API integrations',
-      dueDate: 'Jan 10, 2026',
-    },
-    {
-      id: '5',
-      name: 'Database Migration',
-      key: 'DBM',
-      progress: 55,
-      teamMembers: [
-        { initials: 'EF', color: 'bg-amber-500' },
-        { initials: 'GH', color: 'bg-lime-500' },
-        { initials: 'IJ', color: 'bg-emerald-500' },
-      ],
-      color: 'bg-amber-300',
-      icon: '💾',
-      description: 'Migrate to new database infrastructure',
-      dueDate: 'Feb 5, 2026',
-    },
-    {
-      id: '6',
-      name: 'Security Audit',
-      key: 'SEC',
-      progress: 30,
-      teamMembers: [
-        { initials: 'KL', color: 'bg-red-500' },
-        { initials: 'MN', color: 'bg-rose-500' },
-      ],
-      color: 'bg-rose-300',
-      icon: '🔒',
-      description: 'Comprehensive security assessment',
-      dueDate: 'Jan 25, 2026',
-    },
-  ];
+  // Fetch projects on component mount
+  useEffect(() => {
+    fetchProjects();
+  }, []);
 
-  const filteredProjects = allProjects.filter((project) =>
+  const fetchProjects = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await projectService.getAllProjects();
+      setProjects(data);
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to load projects';
+      setError(errorMessage);
+      addToast({ type: 'error', message: errorMessage });
+      
+      // If unauthorized, redirect to login
+      if (err.status === 401) {
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 2000);
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredProjects = projects.filter((project) =>
     project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    project.key.toLowerCase().includes(searchQuery.toLowerCase())
+    project.projectKey.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  const handleCreateProject = (e: React.FormEvent) => {
+  const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement API call to create project
-    console.log('Creating project:', newProject);
-    setShowCreateModal(false);
-    setNewProject({ name: '', key: '', description: '' });
+    
+    try {
+      setSubmitting(true);
+      
+      // Get current user ID from localStorage
+      const userId = localStorage.getItem('userId');
+      if (!userId) {
+        addToast({ type: 'error', message: 'User not authenticated' });
+        return;
+      }
+
+      const projectData = {
+        name: newProject.name,
+        projectKey: newProject.key,
+        description: newProject.description || undefined,
+        type: newProject.type,
+        ownerId: userId,
+      };
+
+      const createdProject = await projectService.createProject(projectData);
+      
+      // Add new project to the list
+      setProjects([createdProject, ...projects]);
+      
+      // Show success message
+      addToast({ type: 'success', message: 'Project created successfully!' });
+      
+      // Reset form and close modal
+      setShowCreateModal(false);
+      setNewProject({ name: '', key: '', description: '', type: 'SOFTWARE' });
+    } catch (err: any) {
+      const errorMessage = err.message || 'Failed to create project';
+      addToast({ type: 'error', message: errorMessage });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -158,75 +123,110 @@ export default function ProjectsPage() {
         </div>
       </div>
 
-      {/* Projects Table */}
-      <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
-        <div className="overflow-x-auto">
-          <table className="w-full">
-            <thead>
-              <tr className="border-b border-gray-200 bg-gray-50">
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">Project</th>
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">Key</th>
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">Description</th>
-
-                <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredProjects.map((project) => (
-                <tr
-                  key={project.id}
-                  className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
-                >
-                  {/* Project Name with Icon */}
-                  <td className="py-4 px-6">
-                    <div className="flex items-center gap-3">
-                      <div className={`w-10 h-10 ${project.color} rounded-lg flex items-center justify-center text-white text-lg flex-shrink-0`}>
-                        {project.icon}
-                      </div>
-                      <div>
-                        <div className="font-semibold text-gray-900">{project.name}</div>
-                      </div>
-                    </div>
-                  </td>
-
-                  {/* Project Key */}
-                  <td className="py-4 px-6">
-                    <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-gray-100 text-gray-700">
-                      {project.key}
-                    </span>
-                  </td>
-
-                  {/* Description */}
-                  <td className="py-4 px-6">
-                    <p className="text-sm text-gray-600 line-clamp-2 max-w-xs">{project.description}</p>
-                  </td>
-
-                 
-
-
-                
-
-                  {/* Actions */}
-                  <td className="py-4 px-6">
-                    <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                      <MoreVertical className="w-5 h-5 text-gray-400" />
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+      {/* Loading State */}
+      {loading && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-12 text-center">
+          <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+          <p className="mt-4 text-gray-600">Loading projects...</p>
         </div>
-      </div>
+      )}
+
+      {/* Error State */}
+      {error && !loading && (
+        <div className="bg-white rounded-xl shadow-sm border border-red-200 p-8 text-center">
+          <div className="text-red-600 mb-4">
+            <svg className="w-16 h-16 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+            </svg>
+          </div>
+          <h3 className="text-xl font-semibold text-gray-900 mb-2">Failed to load projects</h3>
+          <p className="text-gray-600 mb-4">{error}</p>
+          <button
+            onClick={fetchProjects}
+            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+          >
+            Try Again
+          </button>
+        </div>
+      )}
+
+      {/* Projects Table */}
+      {!loading && !error && (
+        <div className="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">
+          <div className="overflow-x-auto">
+            <table className="w-full">
+              <thead>
+                <tr className="border-b border-gray-200 bg-gray-50">
+                  <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">Project</th>
+                  <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">Key</th>
+                  <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">Description</th>
+                  <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">Type</th>
+                  <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">Created</th>
+                  <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredProjects.map((project) => (
+                  <tr
+                    key={project.id}
+                    className="border-b border-gray-100 hover:bg-gray-50 transition-colors cursor-pointer"
+                  >
+                    {/* Project Name */}
+                    <td className="py-4 px-6">
+                      <div className="font-semibold text-gray-900">{project.name}</div>
+                    </td>
+
+                    {/* Project Key */}
+                    <td className="py-4 px-6">
+                      <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold bg-gray-100 text-gray-700">
+                        {project.projectKey}
+                      </span>
+                    </td>
+
+                    {/* Description */}
+                    <td className="py-4 px-6">
+                      <p className="text-sm text-gray-600 line-clamp-2 max-w-xs">
+                        {project.description || '-'}
+                      </p>
+                    </td>
+
+                    {/* Type */}
+                    <td className="py-4 px-6">
+                      <span className="text-sm text-gray-600">{project.type}</span>
+                    </td>
+
+                    {/* Created Date */}
+                    <td className="py-4 px-6">
+                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                        <Calendar className="w-4 h-4" />
+                        <span>{new Date(project.createdAt).toLocaleDateString()}</span>
+                      </div>
+                    </td>
+
+                    {/* Actions */}
+                    <td className="py-4 px-6">
+                      <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                        <MoreVertical className="w-5 h-5 text-gray-400" />
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
 
       {/* Empty State */}
-      {filteredProjects.length === 0 && (
+      {!loading && !error && filteredProjects.length === 0 && (
         <div className="text-center py-20">
           <div className="text-gray-400 mb-4">
             <Search className="w-16 h-16 mx-auto" />
           </div>
           <h3 className="text-xl font-semibold text-gray-900 mb-2">No projects found</h3>
-          <p className="text-gray-600">Try adjusting your search query</p>
+          <p className="text-gray-600">
+            {searchQuery ? 'Try adjusting your search query' : 'Create your first project to get started'}
+          </p>
         </div>
       )}
 
@@ -240,6 +240,7 @@ export default function ProjectsPage() {
               <button
                 onClick={() => setShowCreateModal(false)}
                 className="p-2 hover:bg-gray-100 rounded-lg transition-colors"
+                disabled={submitting}
               >
                 <X className="w-5 h-5 text-gray-500" />
               </button>
@@ -262,6 +263,7 @@ export default function ProjectsPage() {
                     placeholder="Enter project name"
                     className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
                     required
+                    disabled={submitting}
                   />
                 </div>
 
@@ -279,8 +281,30 @@ export default function ProjectsPage() {
                     maxLength={10}
                     className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none uppercase"
                     required
+                    disabled={submitting}
                   />
                   <p className="mt-1 text-xs text-gray-500">Short identifier for your project (max 10 characters)</p>
+                </div>
+
+                {/* Project Type */}
+                <div>
+                  <label htmlFor="projectType" className="block text-sm font-medium text-gray-700 mb-2">
+                    Project Type *
+                  </label>
+                  <select
+                    id="projectType"
+                    value={newProject.type}
+                    onChange={(e) => setNewProject({ ...newProject, type: e.target.value })}
+                    className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none"
+                    required
+                    disabled={submitting}
+                  >
+                    <option value="SOFTWARE">Software</option>
+                    <option value="BUSINESS">Business</option>
+                    <option value="MARKETING">Marketing</option>
+                    <option value="DESIGN">Design</option>
+                    <option value="OTHER">Other</option>
+                  </select>
                 </div>
 
                 {/* Project Description */}
@@ -294,9 +318,11 @@ export default function ProjectsPage() {
                     onChange={(e) => setNewProject({ ...newProject, description: e.target.value })}
                     placeholder="Enter project description"
                     rows={3}
+                    maxLength={500}
                     className="w-full px-4 py-3 bg-white border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all outline-none resize-none"
+                    disabled={submitting}
                   />
-                  <p className="mt-1 text-xs text-gray-500">Brief description of the project</p>
+                  <p className="mt-1 text-xs text-gray-500">Brief description of the project (max 500 characters)</p>
                 </div>
 
                 {/* Modal Footer */}
@@ -305,14 +331,16 @@ export default function ProjectsPage() {
                     type="button"
                     onClick={() => setShowCreateModal(false)}
                     className="px-6 py-2 text-gray-700 hover:bg-gray-100 rounded-lg transition-colors font-medium"
+                    disabled={submitting}
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg font-medium"
+                    className="px-6 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+                    disabled={submitting}
                   >
-                    Create Project
+                    {submitting ? 'Creating...' : 'Create Project'}
                   </button>
                 </div>
               </form>
