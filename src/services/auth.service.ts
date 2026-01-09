@@ -110,6 +110,39 @@ class AuthService {
   }
 
   /**
+   * Logout user - invalidates refresh token on server
+   */
+  async logout(): Promise<void> {
+    try {
+      const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+      
+      if (token) {
+        // Call backend signout endpoint to invalidate refresh token
+        await fetch(`${API_BASE_URL}/auth/signout`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}`,
+          },
+        });
+      }
+    } catch (error) {
+      // Even if API call fails, we still want to clear local storage
+      console.error('Logout API call failed:', error);
+    } finally {
+      // Always clear local storage regardless of API success
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('userId');
+      localStorage.removeItem('userEmail');
+      localStorage.removeItem('refreshToken');
+      sessionStorage.removeItem('authToken');
+      sessionStorage.removeItem('userId');
+      sessionStorage.removeItem('userEmail');
+      sessionStorage.removeItem('refreshToken');
+    }
+  }
+
+  /**
    * Login user
    */
   async login(email: string, password: string, rememberMe = false): Promise<void> {

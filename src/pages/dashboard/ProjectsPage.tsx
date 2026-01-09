@@ -1,12 +1,15 @@
 import { useState, useEffect } from 'react';
-import { Search, Plus, Calendar, MoreVertical, X } from 'lucide-react';
+import { Search, Plus, Calendar, MoreVertical, X, UserPlus } from 'lucide-react';
 import { projectService } from '../../services/project.service';
 import type { ProjectResponse, CreateProjectFormData } from '../../types/project.types';
 import { useToast } from '../../components/common/ToastProvider';
+import AddMemberModal from '../../components/project/AddMemberModal';
 
 export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showAddMemberModal, setShowAddMemberModal] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<ProjectResponse | null>(null);
   const [projects, setProjects] = useState<ProjectResponse[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -199,15 +202,33 @@ export default function ProjectsPage() {
                     <td className="py-4 px-6">
                       <div className="flex items-center gap-2 text-sm text-gray-600">
                         <Calendar className="w-4 h-4" />
-                        <span>{new Date(project.createdAt).toLocaleDateString()}</span>
+                        <span>
+                          {new Date(
+                            typeof project.createdAt === 'number' && project.createdAt < 10000000000
+                              ? project.createdAt * 1000  // Convert seconds to milliseconds
+                              : project.createdAt
+                          ).toLocaleDateString()}
+                        </span>
                       </div>
                     </td>
 
                     {/* Actions */}
                     <td className="py-4 px-6">
-                      <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
-                        <MoreVertical className="w-5 h-5 text-gray-400" />
-                      </button>
+                      <div className="flex items-center gap-2">
+                        <button
+                          onClick={() => {
+                            setSelectedProject(project);
+                            setShowAddMemberModal(true);
+                          }}
+                          className="p-2 hover:bg-blue-50 rounded-lg transition-colors group"
+                          title="Add Member"
+                        >
+                          <UserPlus className="w-5 h-5 text-gray-400 group-hover:text-blue-600" />
+                        </button>
+                        <button className="p-2 hover:bg-gray-100 rounded-lg transition-colors">
+                          <MoreVertical className="w-5 h-5 text-gray-400" />
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -356,6 +377,23 @@ export default function ProjectsPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {/* Add Member Modal */}
+      {showAddMemberModal && selectedProject && (
+        <AddMemberModal
+          isOpen={showAddMemberModal}
+          onClose={() => {
+            setShowAddMemberModal(false);
+            setSelectedProject(null);
+          }}
+          projectId={selectedProject.id}
+          projectName={selectedProject.name}
+          onMemberAdded={() => {
+            // Optionally refresh project data or show success message
+            addToast({ type: 'success', message: 'Member added successfully!' });
+          }}
+        />
       )}
     </div>
   );

@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { 
   LayoutDashboard, 
   FolderKanban, 
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react';
 import DashboardHome from './DashboardHome.tsx';
 import ProjectsPage from './ProjectsPage.tsx';
+import authService from '../../services/auth.service';
 
 type MenuItem = 'dashboard' | 'projects' | 'tasks' | 'team' | 'settings';
 
@@ -21,7 +23,31 @@ export default function Dashboard() {
   const [activeMenu, setActiveMenu] = useState<MenuItem>('dashboard');
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
+  const navigate = useNavigate();
 
+  // Check authentication on mount
+  useEffect(() => {
+    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+    if (!token) {
+      // No token found, redirect to login
+      navigate('/login');
+    }
+  }, [navigate]);
+
+  // Logout handler
+  const handleLogout = async () => {
+    try {
+      // Call backend signout API and clear storage
+      await authService.logout();
+    } catch (error) {
+      console.error('Logout error:', error);
+    } finally {
+      // Always redirect to login
+      navigate('/login');
+    }
+  };
+
+  
   const menuItems = [
     { id: 'dashboard' as MenuItem, icon: LayoutDashboard, label: 'Dashboard' },
     { id: 'projects' as MenuItem, icon: FolderKanban, label: 'Projects' },
@@ -117,7 +143,10 @@ export default function Dashboard() {
                   Settings
                 </button>
                 <div className="border-t border-gray-200 my-2"></div>
-                <button className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50">
+                <button 
+                  onClick={handleLogout}
+                  className="w-full flex items-center gap-3 px-4 py-2 text-sm text-red-600 hover:bg-red-50"
+                >
                   <LogOut className="w-4 h-4" />
                   Logout
                 </button>
