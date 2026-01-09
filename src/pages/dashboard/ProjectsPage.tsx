@@ -39,7 +39,7 @@ export default function ProjectsPage() {
       // If unauthorized, redirect to login
       if (err.status === 401) {
         setTimeout(() => {
-          window.location.href = '/login';
+          // window.location.href = '/login';
         }, 2000);
       }
     } finally {
@@ -58,8 +58,8 @@ export default function ProjectsPage() {
     try {
       setSubmitting(true);
       
-      // Get current user ID from localStorage
-      const userId = localStorage.getItem('userId');
+      // Get current user ID from localStorage or sessionStorage
+      const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
       if (!userId) {
         addToast({ type: 'error', message: 'User not authenticated' });
         return;

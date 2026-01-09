@@ -131,11 +131,22 @@ class AuthService {
       }
 
       const data = await response.json();
-      // Store token in localStorage if rememberMe, otherwise sessionStorage
+      
+      // Store authentication data in localStorage if rememberMe, otherwise sessionStorage
       if (rememberMe) {
         localStorage.setItem('authToken', data.token);
+        localStorage.setItem('userId', data.id);
+        localStorage.setItem('userEmail', data.email);
+        if (data.refreshToken) {
+          localStorage.setItem('refreshToken', data.refreshToken);
+        }
       } else {
         sessionStorage.setItem('authToken', data.token);
+        sessionStorage.setItem('userId', data.id);
+        sessionStorage.setItem('userEmail', data.email);
+        if (data.refreshToken) {
+          sessionStorage.setItem('refreshToken', data.refreshToken);
+        }
       }
     } catch (error) {
       if ((error as ApiError).status) {
@@ -174,12 +185,18 @@ class AuthService {
 
       const resData = await response.json();
 
-      // If backend returns a token, store it (rememberMe decides storage)
+      // If backend returns authentication data, store it (rememberMe decides storage)
       if (resData?.token) {
         if (rememberMe) {
           localStorage.setItem('authToken', resData.token);
+          if (resData.id) localStorage.setItem('userId', resData.id);
+          if (resData.email) localStorage.setItem('userEmail', resData.email);
+          if (resData.refreshToken) localStorage.setItem('refreshToken', resData.refreshToken);
         } else {
           sessionStorage.setItem('authToken', resData.token);
+          if (resData.id) sessionStorage.setItem('userId', resData.id);
+          if (resData.email) sessionStorage.setItem('userEmail', resData.email);
+          if (resData.refreshToken) sessionStorage.setItem('refreshToken', resData.refreshToken);
         }
       }
     } catch (error) {

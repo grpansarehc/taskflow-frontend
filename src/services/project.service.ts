@@ -27,8 +27,9 @@ class ProjectService {
    * Get authorization header with token
    */
   private getAuthHeaders(): HeadersInit {
-    const token = localStorage.getItem('authToken');
-    const userId = localStorage.getItem('userId');
+    // Check both localStorage and sessionStorage for auth data
+    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+    const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
     
     return {
       'Content-Type': 'application/json',
