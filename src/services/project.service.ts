@@ -1,4 +1,5 @@
 import { API_CONFIG } from '../config/api.config';
+import type { ProjectRequest, ProjectResponse } from '../types/project.types';
 
 const API_BASE_URL = API_CONFIG.BASE_URL;
 
@@ -14,6 +15,8 @@ export interface ProjectMemberResponse {
   role: 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER';
   status: 'ACTIVE' | 'INVITED' | 'REMOVED';
   joinedAt: string;
+  name?: string;
+  email?: string;
 }
 
 export interface ApiError {
@@ -26,14 +29,77 @@ class ProjectService {
    * Get authorization header with token
    */
   private getAuthHeaders(): HeadersInit {
-    const token = localStorage.getItem('authToken');
-    const userId = localStorage.getItem('userId');
+    // Check both localStorage and sessionStorage for auth data
+    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+    const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
     
     return {
       'Content-Type': 'application/json',
       'Authorization': token ? `Bearer ${token}` : '',
       'X-User-Id': userId || '',
     };
+  }
+
+  /**
+   * Get all projects
+   */
+  async getAllProjects(): Promise<ProjectResponse[]> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/projects`, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        throw {
+          message: 'Failed to fetch projects',
+          status: response.status,
+        } as ApiError;
+      }
+
+      return await response.json();
+    } catch (error) {
+      if ((error as ApiError).status) {
+        throw error;
+      }
+      throw {
+        message: 'Network error. Please check your connection.',
+        status: 0,
+      } as ApiError;
+    }
+  }
+
+  /**
+   * Create new project
+   */
+  async createProject(projectData: ProjectRequest): Promise<ProjectResponse> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/projects`, {
+        method: 'POST',
+        headers: this.getAuthHeaders(),
+        body: JSON.stringify(projectData),
+      });
+
+      if (!response.ok) {
+        const errorData = await response
+          .json()
+          .catch(() => ({ message: 'Failed to create project' }));
+        throw {
+          message: errorData.message || 'Failed to create project',
+          status: response.status,
+        } as ApiError;
+      }
+
+      return await response.json();
+    } catch (error) {
+      if ((error as ApiError).status) {
+        throw error;
+      }
+      throw {
+        message: 'Network error. Please check your connection.',
+        status: 0,
+      } as ApiError;
+    }
   }
 
   /**

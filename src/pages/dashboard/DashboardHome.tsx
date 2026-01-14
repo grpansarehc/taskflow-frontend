@@ -1,50 +1,58 @@
+import { useState, useEffect } from 'react';
 import {
   Clock,
   MoreVertical,
   Calendar,
   ExternalLink,
 } from 'lucide-react';
+import { projectService } from '../../services/project.service';
+import type { ProjectResponse } from '../../types/project.types';
+import { useSelector } from 'react-redux';
+import { RootState } from '../../store/store';
 
 interface DashboardHomeProps {
   onNavigateToProjects?: () => void;
 }
 
 export default function DashboardHome({ onNavigateToProjects }: DashboardHomeProps) {
-  const recentProjects = [
-    {
-      name: 'Website Redesign',
-      progress: 65,
+  const [projects, setProjects] = useState<ProjectResponse[]>([]);
+  const [loading, setLoading] = useState(true);
+  const { name } = useSelector((state: RootState) => state.user);
+
+  useEffect(() => {
+    fetchRecentProjects();
+  }, []);
+
+  const fetchRecentProjects = async () => {
+    try {
+      const data = await projectService.getAllProjects();
+      // Sort by creation date (newest first) and take top 3
+      const sorted = data.sort((a, b) => 
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+      ).slice(0, 3);
+      setProjects(sorted);
+    } catch (error) {
+      console.error('Failed to fetch projects:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Helper to generate consistent visual props for projects
+  const getProjectVisuals = (index: number) => {
+    const colors = ['bg-blue-300', 'bg-red-300', 'bg-purple-300', 'bg-green-300'];
+    const icons = ['🌐', '📱', '📊', '🚀'];
+    return {
+      color: colors[index % colors.length],
+      icon: icons[index % icons.length],
+      // Mock progress and members for now as they aren't in the basic project API
+      progress: Math.floor(Math.random() * 60) + 20,
       teamMembers: [
-        { initials: 'SJ', color: 'bg-blue-500' },
-        { initials: 'MC', color: 'bg-purple-500' },
-        { initials: 'EW', color: 'bg-pink-500' },
-      ],
-      color: 'bg-blue-300',
-      icon: '🌐',
-    },
-    {
-      name: 'Mobile App Development',
-      progress: 42,
-      teamMembers: [
-        { initials: 'JD', color: 'bg-green-500' },
-        { initials: 'AS', color: 'bg-orange-500' },
-        { initials: 'KL', color: 'bg-indigo-500' },
-      ],
-      color: 'bg-red-300',
-      icon: '📱',
-    },
-    {
-      name: 'Marketing Campaign Q3',
-      progress: 20,
-      teamMembers: [
-        { initials: 'RT', color: 'bg-purple-500' },
-        { initials: 'MK', color: 'bg-pink-500' },
-        { initials: 'LN', color: 'bg-yellow-500' },
-      ],
-      color: 'bg-purple-300',
-      icon: '📊',
-    },
-  ];
+        { initials: 'JD', color: 'bg-blue-500' },
+        { initials: 'TS', color: 'bg-purple-500' },
+      ]
+    };
+  };
 
   const recentTasks = [
     {
@@ -93,7 +101,7 @@ export default function DashboardHome({ onNavigateToProjects }: DashboardHomePro
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Welcome back, John! 👋
+            Welcome back, {name || 'User'}! 👋
           </h1>
           <p className="text-gray-600">
             Here's what's happening with your projects today.
@@ -118,55 +126,69 @@ export default function DashboardHome({ onNavigateToProjects }: DashboardHomePro
           </button>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {recentProjects.map((project, index) => (
-            <div
-              key={index}
-              className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-all hover:border-gray-300"
-            >
-              {/* Project Header - Colored Background */}
-              <div className={`${project.color} p-4 flex items-center justify-between`}>
-                <div className="flex items-center gap-2">
-                  <span className="text-white text-lg">{project.icon}</span>
-                  <h3 className="font-semibold text-black text-sm">
-                    {project.name}
-                  </h3>
-                </div>
-                <button className="p-1 hover:bg-white/20 rounded transition-colors">
-                  <MoreVertical className="w-4 h-4 text-white" />
-                </button>
-              </div>
-
-              {/* Card Body - White Background */}
-              <div className="p-5">
-                {/* Progress */}
-                <div className="mb-4">
-                  <div className="text-sm font-semibold text-gray-700 mb-2">
-                    {project.progress}% Complete
-                  </div>
-                  <div className="w-full bg-gray-100 rounded-full h-2">
-                    <div
-                      className={`${project.color} h-2 rounded-full transition-all`}
-                      style={{ width: `${project.progress}%` }}
-                    ></div>
-                  </div>
-                </div>
-
-                {/* Team Members */}
-                <div className="flex items-center -space-x-2">
-                  {project.teamMembers.map((member, idx) => (
-                    <div
-                      key={idx}
-                      className={`w-8 h-8 ${member.color} rounded-full flex items-center justify-center text-white text-xs font-semibold border-2 border-white`}
-                      title={member.initials}
-                    >
-                      {member.initials}
-                    </div>
-                  ))}
-                </div>
-              </div>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
+          {loading ? (
+             // Loading Skeletons
+             [1, 2, 3].map((i) => (
+               <div key={i} className="h-48 bg-gray-100 rounded-xl animate-pulse"></div>
+             ))
+          ) : projects.length === 0 ? (
+            <div className="col-span-3 text-center py-10 bg-gray-50 rounded-xl border border-dashed border-gray-300">
+               <p className="text-gray-500">No projects found. Create one to get started!</p>
             </div>
-          ))}
+          ) : (
+            projects.map((project, index) => {
+              const visuals = getProjectVisuals(index);
+              return (
+                <div
+                  key={project.id}
+                  className="bg-white border border-gray-200 rounded-xl overflow-hidden hover:shadow-md transition-all hover:border-gray-300"
+                >
+                  {/* Project Header - Colored Background */}
+                  <div className={`${visuals.color} p-4 flex items-center justify-between`}>
+                    <div className="flex items-center gap-2">
+                      <span className="text-white text-lg">{visuals.icon}</span>
+                      <h3 className="font-semibold text-black text-sm truncate max-w-[150px]" title={project.name}>
+                        {project.name}
+                      </h3>
+                    </div>
+                    <button className="p-1 hover:bg-white/20 rounded transition-colors">
+                      <MoreVertical className="w-4 h-4 text-white" />
+                    </button>
+                  </div>
+
+                  {/* Card Body - White Background */}
+                  <div className="p-5">
+                    {/* Progress */}
+                    <div className="mb-4">
+                      <div className="text-sm font-semibold text-gray-700 mb-2">
+                        {visuals.progress}% Complete
+                      </div>
+                      <div className="w-full bg-gray-100 rounded-full h-2">
+                        <div
+                          className={`${visuals.color} h-2 rounded-full transition-all`}
+                          style={{ width: `${visuals.progress}%` }}
+                        ></div>
+                      </div>
+                    </div>
+
+                    {/* Team Members */}
+                    <div className="flex items-center -space-x-2">
+                      {visuals.teamMembers.map((member, idx) => (
+                        <div
+                          key={idx}
+                          className={`w-8 h-8 ${member.color} rounded-full flex items-center justify-center text-white text-xs font-semibold border-2 border-white`}
+                          title={member.initials}
+                        >
+                          {member.initials}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
 

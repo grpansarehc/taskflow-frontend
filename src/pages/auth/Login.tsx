@@ -1,10 +1,13 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Eye, EyeOff, Mail, Lock, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
 import authService from '../../services/auth.service';
 import type { ApiError } from '../../services/auth.service';
 import { useToast } from '../../components/common/ToastProvider';
 import ForgotPasswordModal from '../../components/auth/ForgotPasswordModal';
+
+import { useDispatch } from 'react-redux';
+import { setUser } from '../../store/slices/userSlice';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -16,6 +19,16 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const navigate = useNavigate();
   const { addToast } = useToast();
+  const dispatch = useDispatch();
+
+  // Redirect if already logged in
+  useEffect(() => {
+    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+    if (token) {
+      // User is already logged in, redirect to dashboard
+      navigate('/dashboard', { replace: true });
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,10 +36,24 @@ export default function Login() {
     setError(null);
 
     try {
-      await authService.login(email, password, rememberMe);
+      const data = await authService.login(email, password, rememberMe);
+      console.log(data);
+      
+      // Dispatch user data to Redux
+      dispatch(setUser({
+        userId: data.id,
+        email: data.email,
+        name: data.name || 'User', // Fallback if name is missing
+        token: data.token
+      }));
+
       addToast({ type: 'success', message: 'Signed in successfully' });
-      // Redirect to dashboard after a short delay so user can see the toast
-      setTimeout(() => navigate('/dashboard'), 200);
+      // Redirect to dashboard and clear login from history
+      setTimeout(() => {
+        navigate('/dashboard');
+        
+        window.history.replaceState(null, '', '/dashboard');
+      }, 200);
     } catch (err) {
       const apiErr = err as ApiError;
       const message = apiErr?.message || 'Failed to login. Please try again.';
