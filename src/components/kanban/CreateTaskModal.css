@@ -1,0 +1,81 @@
+.create-task-form .form-group {
+    margin-bottom: 1rem;
+}
+
+.create-task-form label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: #34495e;
+}
+
+.create-task-form input[type="text"],
+.create-task-form input[type="date"],
+.create-task-form textarea,
+.create-task-form select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #dcdfe3;
+    border-radius: 4px;
+    font-size: 1rem;
+    color: #2c3e50;
+    transition: border-color 0.2s;
+}
+
+.create-task-form input:focus,
+.create-task-form textarea:focus,
+.create-task-form select:focus {
+    border-color: #3498db;
+    outline: none;
+}
+
+.create-task-form .form-row {
+    display: flex;
+    gap: 1rem;
+}
+
+.create-task-form .form-row .form-group {
+    flex: 1;
+}
+
+.modal-footer-buttons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.8rem;
+    margin-top: 1.5rem;
+}
+
+.btn-secondary {
+    background-color: #ecf0f1;
+    color: #7f8c8d;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.btn-secondary:hover:not(:disabled) {
+    background-color: #bdc3c7;
+    color: #2c3e50;
+}
+
+.btn-primary {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    padding: 0.6rem 1.2rem;
+    border-radius: 4px;
+    cursor: pointer;
+    font-weight: 500;
+}
+
+.btn-primary:hover:not(:disabled) {
+    background-color: #2980b9;
+}
+
+.btn-primary:disabled,
+.btn-secondary:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}

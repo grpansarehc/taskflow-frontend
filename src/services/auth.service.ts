@@ -145,7 +145,7 @@ class AuthService {
   /**
    * Login user
    */
-  async login(email: string, password: string, rememberMe = false): Promise<void> {
+  async login(email: string, password: string, rememberMe = false): Promise<any> {
     try {
       const response = await fetch(`${API_BASE_URL}/auth/sign-in`, {
         method: 'POST',
@@ -181,6 +181,8 @@ class AuthService {
           sessionStorage.setItem('refreshToken', data.refreshToken);
         }
       }
+      return data;
+      return data;
     } catch (error) {
       if ((error as ApiError).status) {
         throw error;

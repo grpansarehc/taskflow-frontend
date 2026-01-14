@@ -15,6 +15,8 @@ export interface ProjectMemberResponse {
   role: 'OWNER' | 'ADMIN' | 'MEMBER' | 'VIEWER';
   status: 'ACTIVE' | 'INVITED' | 'REMOVED';
   joinedAt: string;
+  name?: string;
+  email?: string;
 }
 
 export interface ApiError {

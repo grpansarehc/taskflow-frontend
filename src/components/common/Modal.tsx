@@ -6,9 +6,10 @@ interface ModalProps {
   onClose: () => void;
   children: React.ReactNode;
   title?: string;
+  size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl';
 }
 
-export default function Modal({ isOpen, onClose, children, title }: ModalProps) {
+export default function Modal({ isOpen, onClose, children, title, size = 'md' }: ModalProps) {
   useEffect(() => {
     const handleEscape = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
@@ -27,6 +28,14 @@ export default function Modal({ isOpen, onClose, children, title }: ModalProps) 
 
   if (!isOpen) return null;
 
+  const sizeClasses = {
+    sm: 'max-w-sm',
+    md: 'max-w-md',
+    lg: 'max-w-lg',
+    xl: 'max-w-xl',
+    '2xl': 'max-w-2xl',
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
       {/* Backdrop */}
@@ -36,10 +45,10 @@ export default function Modal({ isOpen, onClose, children, title }: ModalProps) 
       />
 
       {/* Modal */}
-      <div className="relative bg-white rounded-2xl shadow-2xl max-w-md w-full animate-slide-up">
+      <div className={`relative bg-white rounded-2xl shadow-2xl w-full animate-slide-up flex flex-col max-h-[90vh] ${sizeClasses[size]}`}>
         {/* Header */}
         {title && (
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between p-6 border-b border-gray-200 shrink-0">
             <h2 className="text-xl font-semibold text-gray-900">{title}</h2>
             <button
               onClick={onClose}
@@ -51,7 +60,7 @@ export default function Modal({ isOpen, onClose, children, title }: ModalProps) 
         )}
 
         {/* Content */}
-        <div className={title ? 'p-6' : 'p-6'}>
+        <div className={`overflow-y-auto ${title ? 'p-6' : 'p-6'}`}>
           {!title && (
             <button
               onClick={onClose}

@@ -162,7 +162,7 @@ export default function ProjectsPage() {
                 <tr className="border-b border-gray-200 bg-gray-50">
                   <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">Project</th>
                   <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">Key</th>
-                  <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">Description</th>
+                  {/* <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">Description</th> */}
                   <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">Type</th>
                   <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">Created</th>
                   <th className="text-left py-4 px-6 text-sm font-semibold text-gray-700">Actions</th>
@@ -186,12 +186,12 @@ export default function ProjectsPage() {
                       </span>
                     </td>
 
-                    {/* Description */}
+                    {/* Description
                     <td className="py-4 px-6">
                       <p className="text-sm text-gray-600 line-clamp-2 max-w-xs">
                         {project.description || '-'}
                       </p>
-                    </td>
+                    </td> */}
 
                     {/* Type */}
                     <td className="py-4 px-6">
