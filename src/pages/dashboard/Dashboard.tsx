@@ -1,43 +1,53 @@
-import { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { 
-  LayoutDashboard, 
-  FolderKanban, 
-  CheckSquare, 
-  Users, 
-  Settings, 
-  Bell,
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
+import {
+  LayoutDashboard,
+  FolderKanban,
+  CheckSquare,
+  Settings,
   Search,
   Plus,
   ChevronDown,
   LogOut,
   User,
   Trello,
-} from 'lucide-react';
-import DashboardHome from './DashboardHome.tsx';
-import ProjectsPage from './ProjectsPage.tsx';
-import KanbanBoard from './KanbanBoard.tsx';
-import CreateTaskModal from '../../components/kanban/CreateTaskModal';
-import authService from '../../services/auth.service';
-import { useSelector } from 'react-redux';
-import { RootState } from '../../redux/store';
+} from "lucide-react";
+import DashboardHome from "./DashboardHome.tsx";
+import ProjectsPage from "./ProjectsPage.tsx";
+import KanbanBoard from "./KanbanBoard.tsx";
+import CreateTaskModal from "../../components/kanban/CreateTaskModal";
+import NotificationBell from "../../components/notifications/NotificationBell";
+import authService from "../../services/auth.service";
+import { logout } from "../../store/slices/userSlice";
+import keycloak from "../../services/keycloak.service";
+import { useSelector } from "react-redux";
+import { RootState } from "../../store/store";
 
-type MenuItem = 'dashboard' | 'projects' | 'kanban' | 'tasks' | 'team' | 'settings';
+type MenuItem =
+  | "dashboard"
+  | "projects"
+  | "kanban"
+  | "tasks"
+  | "team"
+  | "settings";
 
 export default function Dashboard() {
-  const [activeMenu, setActiveMenu] = useState<MenuItem>('dashboard');
+  const [activeMenu, setActiveMenu] = useState<MenuItem>("dashboard");
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
   const [showLogoutModal, setShowLogoutModal] = useState(false);
-    const { name,email } = useSelector((state: RootState) => state.user);
+  const { name, email, userId } = useSelector((state: RootState) => state.user);
   const navigate = useNavigate();
+  const dispatch = useDispatch();
 
   // Check authentication on mount
   useEffect(() => {
-    const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
+    const token =
+      localStorage.getItem("authToken") || sessionStorage.getItem("authToken");
     if (!token) {
       // No token found, redirect to login
-      navigate('/login');
+      navigate("/login");
     }
   }, [navigate]);
 
@@ -48,21 +58,40 @@ export default function Dashboard() {
       // Call backend signout API and clear storage
       await authService.logout();
     } catch (error) {
-      console.error('Logout error:', error);
+      console.error("Logout error:", error);
     } finally {
-      // Always redirect to login and replace history to prevent back navigation
-      navigate('/login', { replace: true });
+      // Clear Redux state
+      dispatch(logout());
+
+      // Check if logged in via Keycloak and logout
+      if (keycloak.authenticated) {
+        await keycloak.logout({
+          redirectUri: `${window.location.origin}/login`,
+        });
+      } else {
+        // Regular logout - just navigate to login
+        navigate("/login", { replace: true });
+      }
     }
   };
 
-  
+  // Helper function to generate user initials from name
+  const getUserInitials = (name: string | null): string => {
+    if (!name) return "U";
+    return name
+      .split(" ")
+      .map((word) => word.charAt(0).toUpperCase())
+      .join("")
+      .slice(0, 2); // Take max 2 initials
+  };
+
   const menuItems = [
-    { id: 'dashboard' as MenuItem, icon: LayoutDashboard, label: 'Dashboard' },
-    { id: 'projects' as MenuItem, icon: FolderKanban, label: 'Projects' },
-    { id: 'kanban' as MenuItem, icon: Trello, label: 'Kanban Board' },
-    { id: 'tasks' as MenuItem, icon: CheckSquare, label: 'Tasks' },
-  
-    { id: 'settings' as MenuItem, icon: Settings, label: 'Settings' },
+    { id: "dashboard" as MenuItem, icon: LayoutDashboard, label: "Dashboard" },
+    { id: "projects" as MenuItem, icon: FolderKanban, label: "Projects" },
+    { id: "kanban" as MenuItem, icon: Trello, label: "Kanban Board" },
+    { id: "tasks" as MenuItem, icon: CheckSquare, label: "Tasks" },
+
+    { id: "settings" as MenuItem, icon: Settings, label: "Settings" },
   ];
 
   // Fetch projects for global create modal
@@ -72,7 +101,9 @@ export default function Dashboard() {
   useEffect(() => {
     const fetchProjects = async () => {
       try {
-        const data = await import('../../services/project.service').then(m => m.projectService.getAllProjects());
+        const data = await import("../../services/project.service").then((m) =>
+          m.projectService.getAllProjects(),
+        );
         setProjects(data);
       } catch (error) {
         console.error("Failed to fetch projects for global modal", error);
@@ -84,9 +115,9 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex">
       {/* Sidebar */}
-      <aside 
+      <aside
         className={`${
-          sidebarCollapsed ? 'w-20' : 'w-64'
+          sidebarCollapsed ? "w-20" : "w-64"
         } bg-white border-r border-gray-200 transition-all duration-300 flex flex-col shadow-sm h-screen sticky top-0`}
       >
         {/* Logo */}
@@ -105,7 +136,9 @@ export default function Dashboard() {
             onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
             className="p-1.5 hover:bg-gray-100 rounded-lg transition-colors"
           >
-            <ChevronDown className={`w-5 h-5 text-gray-600 transition-transform ${sidebarCollapsed ? 'rotate-90' : '-rotate-90'}`} />
+            <ChevronDown
+              className={`w-5 h-5 text-gray-600 transition-transform ${sidebarCollapsed ? "rotate-90" : "-rotate-90"}`}
+            />
           </button>
         </div>
 
@@ -114,17 +147,17 @@ export default function Dashboard() {
           {menuItems.map((item) => {
             const Icon = item.icon;
             const isActive = activeMenu === item.id;
-            
+
             return (
               <button
                 key={item.id}
                 onClick={() => setActiveMenu(item.id)}
                 className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
                   isActive
-                    ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md'
-                    : 'text-gray-700 hover:bg-gray-100'
+                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
+                    : "text-gray-700 hover:bg-gray-100"
                 }`}
-                title={sidebarCollapsed ? item.label : ''}
+                title={sidebarCollapsed ? item.label : ""}
               >
                 <Icon className="w-5 h-5 flex-shrink-0" />
                 {!sidebarCollapsed && (
@@ -143,13 +176,17 @@ export default function Dashboard() {
               className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg hover:bg-gray-100 transition-colors"
             >
               <div className="w-8 h-8 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center text-white font-semibold flex-shrink-0">
-                JD
+                {getUserInitials(name)}
               </div>
               {!sidebarCollapsed && (
                 <>
                   <div className="flex-1 text-left min-w-0">
-                    <div className="text-sm font-semibold text-gray-900 truncate">{name}</div>
-                    <div className="text-xs text-gray-500 truncate">{email}</div>
+                    <div className="text-sm font-semibold text-gray-900 truncate">
+                      {name}
+                    </div>
+                    <div className="text-xs text-gray-500 truncate">
+                      {email}
+                    </div>
                   </div>
                   <ChevronDown className="w-4 h-4 text-gray-400" />
                 </>
@@ -168,7 +205,7 @@ export default function Dashboard() {
                   Settings
                 </button>
                 <div className="border-t border-gray-200 my-2"></div>
-                <button 
+                <button
                   onClick={() => {
                     setShowLogoutModal(true);
                     setShowUserMenu(false);
@@ -202,28 +239,29 @@ export default function Dashboard() {
 
           <div className="flex items-center gap-3">
             {/* Create Button */}
-            <button 
-                onClick={() => setIsCreateTaskModalOpen(true)}
-                className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg"
+            <button
+              onClick={() => setIsCreateTaskModalOpen(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-lg hover:from-blue-700 hover:to-indigo-700 transition-all shadow-md hover:shadow-lg"
             >
               <Plus className="w-5 h-5" />
               <span className="font-medium">Create</span>
             </button>
 
             {/* Notifications */}
-            <button className="relative p-2 hover:bg-gray-100 rounded-lg transition-colors">
-              <Bell className="w-5 h-5 text-gray-600" />
-              <span className="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
-            </button>
+            {userId && <NotificationBell userId={userId} />}
           </div>
         </header>
 
         {/* Content Area */}
         <main className="flex-1 overflow-auto p-6">
-          {activeMenu === 'dashboard' && <DashboardHome onNavigateToProjects={() => setActiveMenu('projects')} />}
-          {activeMenu === 'projects' && <ProjectsPage />}
-          {activeMenu === 'kanban' && <KanbanBoard />}
-          {activeMenu === 'tasks' && (
+          {activeMenu === "dashboard" && (
+            <DashboardHome
+              onNavigateToProjects={() => setActiveMenu("projects")}
+            />
+          )}
+          {activeMenu === "projects" && <ProjectsPage />}
+          {activeMenu === "kanban" && <KanbanBoard />}
+          {activeMenu === "tasks" && (
             <div className="text-center py-20">
               <CheckSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
               <h2 className="text-2xl font-bold text-gray-900 mb-2">Tasks</h2>
@@ -237,10 +275,12 @@ export default function Dashboard() {
               <p className="text-gray-600">Team view coming soon...</p>
             </div>
           )} */}
-          {activeMenu === 'settings' && (
+          {activeMenu === "settings" && (
             <div className="text-center py-20">
               <Settings className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Settings</h2>
+              <h2 className="text-2xl font-bold text-gray-900 mb-2">
+                Settings
+              </h2>
               <p className="text-gray-600">Settings view coming soon...</p>
             </div>
           )}
@@ -249,13 +289,13 @@ export default function Dashboard() {
 
       {/* Global Create Task Modal */}
       <CreateTaskModal
-         isOpen={isCreateTaskModalOpen}
-         onClose={() => setIsCreateTaskModalOpen(false)}
-         onTaskCreated={() => {
-             setIsCreateTaskModalOpen(false);
-             // Optionally trigger a refresh if we could
-         }}
-         projects={projects}
+        isOpen={isCreateTaskModalOpen}
+        onClose={() => setIsCreateTaskModalOpen(false)}
+        onTaskCreated={() => {
+          setIsCreateTaskModalOpen(false);
+          // Optionally trigger a refresh if we could
+        }}
+        projects={projects}
       />
 
       {/* Logout Confirmation Modal */}
@@ -266,13 +306,15 @@ export default function Dashboard() {
               <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
                 <LogOut className="w-6 h-6 text-red-600" />
               </div>
-              <h2 className="text-xl font-bold text-gray-900">Confirm Logout</h2>
+              <h2 className="text-xl font-bold text-gray-900">
+                Confirm Logout
+              </h2>
             </div>
-            
+
             <p className="text-gray-600 mb-6">
               Are you sure you want to logout? Any unsaved changes will be lost.
             </p>
-            
+
             <div className="flex items-center gap-3 justify-end">
               <button
                 onClick={() => setShowLogoutModal(false)}

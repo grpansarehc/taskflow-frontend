@@ -7,6 +7,7 @@ import AddMemberModal from '../../components/project/AddMemberModal';
 
 export default function ProjectsPage() {
   const [searchQuery, setSearchQuery] = useState('');
+  const [filterType, setFilterType] = useState<'all' | 'created'>('all');
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showAddMemberModal, setShowAddMemberModal] = useState(false);
   const [selectedProject, setSelectedProject] = useState<ProjectResponse | null>(null);
@@ -50,10 +51,18 @@ export default function ProjectsPage() {
     }
   };
 
-  const filteredProjects = projects.filter((project) =>
-    project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    project.projectKey.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Get current user ID
+  const currentUserId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
+
+  // Filter projects based on search query and filter type
+  const filteredProjects = projects.filter((project) => {
+    const matchesSearch = project.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      project.projectKey.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesFilter = filterType === 'all' || project.ownerId === currentUserId;
+    
+    return matchesSearch && matchesFilter;
+  });
 
   const handleCreateProject = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -110,6 +119,42 @@ export default function ProjectsPage() {
           <Plus className="w-5 h-5" />
           <span className="font-medium">New Project</span>
         </button>
+      </div>
+
+      {/* Filter Tabs */}
+      <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-1">
+        <div className="flex gap-2">
+          <button
+            onClick={() => setFilterType('all')}
+            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
+              filterType === 'all'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            All Projects
+            <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+              filterType === 'all' ? 'bg-blue-500' : 'bg-gray-200'
+            }`}>
+              {projects.length}
+            </span>
+          </button>
+          <button
+            onClick={() => setFilterType('created')}
+            className={`flex-1 px-4 py-2 rounded-lg font-medium transition-all ${
+              filterType === 'created'
+                ? 'bg-blue-600 text-white shadow-sm'
+                : 'text-gray-600 hover:bg-gray-50'
+            }`}
+          >
+            Created by Me
+            <span className={`ml-2 px-2 py-0.5 rounded-full text-xs ${
+              filterType === 'created' ? 'bg-blue-500' : 'bg-gray-200'
+            }`}>
+              {projects.filter(p => p.ownerId === (localStorage.getItem('userId') || sessionStorage.getItem('userId'))).length}
+            </span>
+          </button>
+        </div>
       </div>
 
       {/* Search Bar */}
