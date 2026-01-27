@@ -42,26 +42,42 @@ export default function Login() {
 
     // Check if user is authenticated via Keycloak
     if (keycloak.authenticated) {
-      // User is authenticated with Keycloak, set token and redirect
+      // User is authenticated with Keycloak, load profile and redirect
       const token = keycloak.token;
       if (token) {
         localStorage.setItem("authToken", token);
         localStorage.setItem("keycloakToken", token);
 
-        // Get user info from Keycloak
-        const profile = keycloak.profile;
-        if (profile) {
-          dispatch(
-            setUser({
-              userId: profile.sub || "",
-              email: profile.email || "",
-              name: profile.name || profile.given_name || "User",
-              token: token,
-            }),
-          );
-        }
+        // Load user profile from Keycloak
+        keycloak.loadUserProfile()
+          .then((profile) => {
+            dispatch(
+              setUser({
+                userId: profile.id || keycloak.subject || "",
+                email: profile.email || "",
+                name: `${profile.firstName || ""} ${profile.lastName || ""}`.trim() || profile.username || "User",
+                token: token,
+              }),
+            );
+            navigate("/dashboard", { replace: true });
+          })
+          .catch((error) => {
+            console.error("Failed to load user profile:", error);
+            // Fallback: use token claims
+            const userId = keycloak.subject || "";
+            const email = keycloak.tokenParsed?.email || "";
+            const name = keycloak.tokenParsed?.name || keycloak.tokenParsed?.preferred_username || "User";
 
-        navigate("/dashboard", { replace: true });
+            dispatch(
+              setUser({
+                userId,
+                email,
+                name,
+                token: token,
+              }),
+            );
+            navigate("/dashboard", { replace: true });
+          });
       }
     }
   }, [navigate, dispatch]);
