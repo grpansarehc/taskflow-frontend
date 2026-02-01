@@ -72,7 +72,7 @@ const NotificationBell = ({ userId }: NotificationBellProps) => {
       </button>
 
       {isOpen && (
-        <NotificationDropdown 
+        <NotificationDropdown
           onClose={handleClose}
           onCountUpdate={handleCountUpdate}
         />

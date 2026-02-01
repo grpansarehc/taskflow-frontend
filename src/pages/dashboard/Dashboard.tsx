@@ -16,13 +16,15 @@ import {
 import DashboardHome from "./DashboardHome.tsx";
 import ProjectsPage from "./ProjectsPage.tsx";
 import KanbanBoard from "./KanbanBoard.tsx";
+import TasksPage from "./TasksPage.tsx";
 import CreateTaskModal from "../../components/kanban/CreateTaskModal";
 import NotificationBell from "../../components/notifications/NotificationBell";
 import authService from "../../services/auth.service";
 import { logout } from "../../store/slices/userSlice";
 import keycloak from "../../services/keycloak.service";
 import { useSelector } from "react-redux";
-import { RootState } from "../../store/store";
+import type { RootState } from "../../store/store";
+import type { ProjectResponse } from "../../types/project.types";
 
 type MenuItem =
   | "dashboard"
@@ -95,7 +97,7 @@ export default function Dashboard() {
   ];
 
   // Fetch projects for global create modal
-  const [projects, setProjects] = useState<any[]>([]);
+  const [projects, setProjects] = useState<ProjectResponse[]>([]);
   const [isCreateTaskModalOpen, setIsCreateTaskModalOpen] = useState(false);
 
   useEffect(() => {
@@ -116,9 +118,8 @@ export default function Dashboard() {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50 flex">
       {/* Sidebar */}
       <aside
-        className={`${
-          sidebarCollapsed ? "w-20" : "w-64"
-        } bg-white border-r border-gray-200 transition-all duration-300 flex flex-col shadow-sm h-screen sticky top-0`}
+        className={`${sidebarCollapsed ? "w-20" : "w-64"
+          } bg-white border-r border-gray-200 transition-all duration-300 flex flex-col shadow-sm h-screen sticky top-0`}
       >
         {/* Logo */}
         <div className="h-16 flex items-center justify-between px-4 border-b border-gray-200">
@@ -152,11 +153,10 @@ export default function Dashboard() {
               <button
                 key={item.id}
                 onClick={() => setActiveMenu(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${
-                  isActive
-                    ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
-                    : "text-gray-700 hover:bg-gray-100"
-                }`}
+                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg transition-all ${isActive
+                  ? "bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-md"
+                  : "text-gray-700 hover:bg-gray-100"
+                  }`}
                 title={sidebarCollapsed ? item.label : ""}
               >
                 <Icon className="w-5 h-5 flex-shrink-0" />
@@ -261,13 +261,7 @@ export default function Dashboard() {
           )}
           {activeMenu === "projects" && <ProjectsPage />}
           {activeMenu === "kanban" && <KanbanBoard />}
-          {activeMenu === "tasks" && (
-            <div className="text-center py-20">
-              <CheckSquare className="w-16 h-16 text-gray-400 mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-gray-900 mb-2">Tasks</h2>
-              <p className="text-gray-600">Tasks view coming soon...</p>
-            </div>
-          )}
+          {activeMenu === "tasks" && <TasksPage />}
           {/* {activeMenu === 'team' && (
             <div className="text-center py-20">
               <Users className="w-16 h-16 text-gray-400 mx-auto mb-4" />

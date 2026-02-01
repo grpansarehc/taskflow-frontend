@@ -1,3 +1,4 @@
+
 import { API_CONFIG } from '../config/api.config';
 import type { CreateTaskRequest } from '../types/kanban.types';
 
@@ -9,6 +10,30 @@ export interface ApiError {
   errors?: Record<string, string>;
 }
 
+export interface TaskApiResponse {
+  id: string;
+  taskId?: string;
+  key?: string;
+  taskKey?: string;
+  title: string;
+  description?: string;
+  status?: string | { name: string };
+  statusName?: string;
+  statusId?: string;
+  priority?: string;
+  assignee?: { name: string; avatar?: string };
+  assigneeName?: string;
+  assigneeAvatar?: string;
+  assigneeId?: string;
+  reporter?: { name: string; avatar?: string };
+  reporterName?: string;
+  reporterAvatar?: string;
+  resolution?: string;
+  createdAt?: string;
+  updatedAt?: string;
+  dueDate?: string;
+}
+
 class TaskService {
   /**
    * Get authorization header with token
@@ -17,13 +42,33 @@ class TaskService {
     const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
     const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
     const userEmail = localStorage.getItem('userEmail') || sessionStorage.getItem('userEmail');
-    
+
     return {
       'Content-Type': 'application/json',
       'Authorization': token ? `Bearer ${token}` : '',
       'X-User-Id': userId || '',
       'X-User-Email': userEmail || ''
     };
+  }
+
+  /**
+   * Get user by ID
+   */
+  async getUserById(userId: string): Promise<any> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/users/${userId}`, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        return null;
+      }
+
+      return await response.json();
+    } catch (error) {
+      return null;
+    }
   }
 
   /**
@@ -48,7 +93,7 @@ class TaskService {
 
       return await response.json();
     } catch (error) {
-       if ((error as ApiError).status) {
+      if ((error as ApiError).status) {
         throw error;
       }
       throw {
@@ -111,7 +156,38 @@ class TaskService {
 
       return await response.json();
     } catch (error) {
-       if ((error as ApiError).status) {
+      if ((error as ApiError).status) {
+        throw error;
+      }
+      throw {
+        message: 'Network error. Please check your connection.',
+        status: 0,
+      } as ApiError;
+    }
+  }
+
+  /**
+   * Get all tasks
+   */
+  async getAllTasks(): Promise<TaskApiResponse[]> {
+    try {
+      const response = await fetch(`${API_BASE_URL}/tasks/all`, {
+        method: 'GET',
+        headers: this.getAuthHeaders(),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw {
+          message: errorData.message || 'Failed to fetch tasks',
+          status: response.status,
+          errors: errorData.errors
+        } as ApiError;
+      }
+
+      return await response.json();
+    } catch (error) {
+      if ((error as ApiError).status) {
         throw error;
       }
       throw {

@@ -1,5 +1,6 @@
-import { Client, StompSubscription } from '@stomp/stompjs';
+import { Client, type StompSubscription } from '@stomp/stompjs';
 import SockJS from 'sockjs-client';
+import { API_CONFIG } from '../config/api.config';
 import type { Notification } from '../types/notification.types';
 
 type NotificationCallback = (notification: Notification) => void;
@@ -20,8 +21,8 @@ class WebSocketService {
       return;
     }
 
-    const socket = new SockJS('http://localhost:8085/ws/notifications');
-    
+    const socket = new SockJS(`${API_CONFIG.BASE_URL}/ws/notifications`);
+
     this.client = new Client({
       webSocketFactory: () => socket as any,
       debug: (str) => {
