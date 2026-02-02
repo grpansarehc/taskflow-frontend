@@ -32,6 +32,7 @@ class ProjectService {
     // Check both localStorage and sessionStorage for auth data
     const token = localStorage.getItem('authToken') || sessionStorage.getItem('authToken');
     const userId = localStorage.getItem('userId') || sessionStorage.getItem('userId');
+    console.log("token",token);
     
     return {
       'Content-Type': 'application/json',
