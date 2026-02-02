@@ -1,5 +1,4 @@
-
-import React, { useState, useEffect } from 'react';
+import { useState, useEffect } from 'react';
 import TasksHeader from '../../components/tasks/TasksHeader';
 import TaskTable from '../../components/tasks/TaskTable';
 import TaskDetailModal from '../../components/kanban/TaskDetailModal';

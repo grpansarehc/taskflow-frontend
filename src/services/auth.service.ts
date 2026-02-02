@@ -125,7 +125,7 @@ class AuthService {
       const token =
         localStorage.getItem("authToken") ||
         sessionStorage.getItem("authToken");
-      const keycloakToken = localStorage.getItem("keycloakToken");
+      // const keycloakToken = localStorage.getItem("keycloakToken");
 
       if (token) {
         // Call backend signout endpoint to invalidate refresh token

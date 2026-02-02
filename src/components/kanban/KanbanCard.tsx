@@ -1,5 +1,5 @@
 import React from 'react';
-import { Clock, MoreHorizontal, User, AlertCircle, Calendar, GitBranch, CheckSquare, Square } from 'lucide-react';
+import { MoreHorizontal, User, AlertCircle, GitBranch, CheckSquare } from 'lucide-react';
 import type { TaskCard, Priority } from '../../types/kanban.types';
 
 interface KanbanCardProps {

@@ -10,132 +10,132 @@ import { useToast } from '../../components/common/ToastProvider';
 import KanbanColumn from '../../components/kanban/KanbanColumn';
 
 // Mock data for demonstration
-const MOCK_BOARD: KanbanBoardType = {
-  projectId: 'mock-project-1',
-  columns: [
-    {
-      statusId: 'todo',
-      name: 'To Do',
-      tasks: [
-        {
-          taskId: 'task-1',
-          title: 'Design new landing page',
-          description: 'Create wireframes and mockups for the new landing page',
-          statusId: 'todo',
-          position: 0,
-          priority: 'HIGH',
-          taskType: 'USER_STORY',
-          dueDate: '2026-01-15',
-        },
-        {
-          taskId: 'task-2',
-          title: 'Setup authentication system',
-          description: 'Implement JWT-based authentication',
-          statusId: 'todo',
-          position: 1,
-          priority: 'CRITICAL',
-          taskType: 'USER_STORY',
-          assigneeId: 'user-1',
-        },
-        {
-          taskId: 'task-3',
-          title: 'Write API documentation',
-          statusId: 'todo',
-          position: 2,
-          priority: 'MEDIUM',
-          taskType: 'USER_STORY',
-        },
-      ],
-    },
-    {
-      statusId: 'in-progress',
-      name: 'In Progress',
-      tasks: [
-        {
-          taskId: 'task-4',
-          title: 'Implement drag-and-drop feature',
-          description: 'Add drag and drop functionality to Kanban board',
-          statusId: 'in-progress',
-          position: 0,
-          priority: 'HIGH',
-          taskType: 'USER_STORY',
-          assigneeId: 'user-2',
-          dueDate: '2026-01-12',
-        },
-        {
-          taskId: 'task-5',
-          title: 'Fix responsive layout issues',
-          statusId: 'in-progress',
-          position: 1,
-          priority: 'MEDIUM',
-          taskType: 'BUG',
-          assigneeId: 'user-1',
-        },
-      ],
-    },
-    {
-      statusId: 'review',
-      name: 'In Review',
-      tasks: [
-        {
-          taskId: 'task-6',
-          title: 'Update user profile page',
-          description: 'Add new fields and improve UI',
-          statusId: 'review',
-          position: 0,
-          priority: 'MEDIUM',
-          taskType: 'USER_STORY',
-          assigneeId: 'user-3',
-        },
-      ],
-    },
-    {
-      statusId: 'done',
-      name: 'Done',
-      tasks: [
-        {
-          taskId: 'task-7',
-          title: 'Setup project repository',
-          statusId: 'done',
-          position: 0,
-          priority: 'HIGH',
-          taskType: 'USER_STORY',
-        },
-        {
-          taskId: 'task-8',
-          title: 'Configure CI/CD pipeline',
-          description: 'Setup GitHub Actions for automated testing',
-          statusId: 'done',
-          position: 1,
-          priority: 'MEDIUM',
-          taskType: 'USER_STORY',
-          assigneeId: 'user-2',
-        },
-      ],
-    },
-  ],
-};
+// const MOCK_BOARD: KanbanBoardType = {
+//   projectId: 'mock-project-1',
+//   columns: [
+//     {
+//       statusId: 'todo',
+//       name: 'To Do',
+//       tasks: [
+//         {
+//           taskId: 'task-1',
+//           title: 'Design new landing page',
+//           description: 'Create wireframes and mockups for the new landing page',
+//           statusId: 'todo',
+//           position: 0,
+//           priority: 'HIGH',
+//           taskType: 'USER_STORY',
+//           dueDate: '2026-01-15',
+//         },
+//         {
+//           taskId: 'task-2',
+//           title: 'Setup authentication system',
+//           description: 'Implement JWT-based authentication',
+//           statusId: 'todo',
+//           position: 1,
+//           priority: 'CRITICAL',
+//           taskType: 'USER_STORY',
+//           assigneeId: 'user-1',
+//         },
+//         {
+//           taskId: 'task-3',
+//           title: 'Write API documentation',
+//           statusId: 'todo',
+//           position: 2,
+//           priority: 'MEDIUM',
+//           taskType: 'USER_STORY',
+//         },
+//       ],
+//     },
+//     {
+//       statusId: 'in-progress',
+//       name: 'In Progress',
+//       tasks: [
+//         {
+//           taskId: 'task-4',
+//           title: 'Implement drag-and-drop feature',
+//           description: 'Add drag and drop functionality to Kanban board',
+//           statusId: 'in-progress',
+//           position: 0,
+//           priority: 'HIGH',
+//           taskType: 'USER_STORY',
+//           assigneeId: 'user-2',
+//           dueDate: '2026-01-12',
+//         },
+//         {
+//           taskId: 'task-5',
+//           title: 'Fix responsive layout issues',
+//           statusId: 'in-progress',
+//           position: 1,
+//           priority: 'MEDIUM',
+//           taskType: 'BUG',
+//           assigneeId: 'user-1',
+//         },
+//       ],
+//     },
+//     {
+//       statusId: 'review',
+//       name: 'In Review',
+//       tasks: [
+//         {
+//           taskId: 'task-6',
+//           title: 'Update user profile page',
+//           description: 'Add new fields and improve UI',
+//           statusId: 'review',
+//           position: 0,
+//           priority: 'MEDIUM',
+//           taskType: 'USER_STORY',
+//           assigneeId: 'user-3',
+//         },
+//       ],
+//     },
+//     {
+//       statusId: 'done',
+//       name: 'Done',
+//       tasks: [
+//         {
+//           taskId: 'task-7',
+//           title: 'Setup project repository',
+//           statusId: 'done',
+//           position: 0,
+//           priority: 'HIGH',
+//           taskType: 'USER_STORY',
+//         },
+//         {
+//           taskId: 'task-8',
+//           title: 'Configure CI/CD pipeline',
+//           description: 'Setup GitHub Actions for automated testing',
+//           statusId: 'done',
+//           position: 1,
+//           priority: 'MEDIUM',
+//           taskType: 'USER_STORY',
+//           assigneeId: 'user-2',
+//         },
+//       ],
+//     },
+//   ],
+// };
 
-const MOCK_PROJECTS: ProjectResponse[] = [
-  {
-    id: 'mock-project-1',
-    name: 'TaskFlow Development',
-    projectKey: 'TFD',
-    description: 'Main development project for TaskFlow application',
-    type: 'SOFTWARE',
-    ownerId: 'user-1',
-    createdAt: '2026-01-01',
-  },
-  {
-    id: 'mock-project-2',
-    name: 'Marketing Campaign',
-    projectKey: 'MKT',
-    description: 'Q1 2026 marketing initiatives',
-    type: 'MARKETING',
-    ownerId: 'user-2',
-    createdAt: '2026-01-05',
-  },
-];
+// const MOCK_PROJECTS: ProjectResponse[] = [
+//   {
+//     id: 'mock-project-1',
+//     name: 'TaskFlow Development',
+//     projectKey: 'TFD',
+//     description: 'Main development project for TaskFlow application',
+//     type: 'SOFTWARE',
+//     ownerId: 'user-1',
+//     createdAt: '2026-01-01',
+//   },
+//   {
+//     id: 'mock-project-2',
+//     name: 'Marketing Campaign',
+//     projectKey: 'MKT',
+//     description: 'Q1 2026 marketing initiatives',
+//     type: 'MARKETING',
+//     ownerId: 'user-2',
+//     createdAt: '2026-01-05',
+//   },
+// ];
 
 export default function KanbanBoard() {
   const [projects, setProjects] = useState<ProjectResponse[]>([]);

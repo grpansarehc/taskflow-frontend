@@ -8,7 +8,7 @@ import keycloak from "./services/keycloak.service";
 
 keycloak
   .init({
-    onLoad: "login-optional",
+    onLoad: "check-sso" as const,
     checkLoginIframe: false,
     pkceMethod: "S256",
     enableLogging: true,

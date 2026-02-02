@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { projectService, AddMemberByEmailRequest } from '../../services/project.service';
+import { projectService } from '../../services/project.service';
+import type { AddMemberByEmailRequest } from '../../services/project.service';
 import './AddMemberModal.css';
 
 interface AddMemberModalProps {
